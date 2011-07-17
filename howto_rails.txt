@@ -1,0 +1,303 @@
+> selecting from array through condition
+ 
+  selected_items = all_items.select{|item| item.is_ok?}
+
+  If item.is_ok is true then this will be appended to selected_items array 
+
+> easily create CRUD through scaffold:
+  1. create table
+	create table products(
+	  id INTEGER PRIMARY KEY AUTOINCREMENT not null,
+	  title varchar(100) not null,
+	  description text not null,
+	  image_url varchar(200) not null,
+	  price decimal(10,2) default 0);
+  2. configure config/database.yaml:
+	development:
+	adapter: sqlite3
+	database: depot.sql
+	timeout: 5000
+  3. generate the scaffold:
+	ruby script/generate scaffold Product Admin
+     - note that model Product corresponds to table products and Admin 
+       is the name of the controllermodel 
+
+
+HOWTO CREATE a model and migrate it to a database
+  $ ruby script/generate model message title:string text:text recipient_id:integer
+  $ rake db:migrate
+      (use 'rake db:rollback' if you edit your migration and want to run it)
+  $ ruby script/generate scaffold Message Inbox
+  $ rake db:test:prepare
+
+HOWTO modify models
+  MORE:
+  $ ruby script/generate migration AddReferenceToPerson
+	class AddReferenceToPerson < ActiveRecord::Migration
+	  def self.up
+	    add_column :table_name_plural, :column_name, :type
+    end
+	  def self.down
+	    remove_column :table_name_plural, :column_name
+	  end
+	end
+
+HELPERS for MIGRATIONS
+  - create_table and change_table
+  create_table :products do |t|
+    t.timestamps
+  end
+
+  change_table :products do |t|
+    t.timestamps
+  end
+ 
+  create_table :products do |t|
+    t.references :category
+  end
+
+METHODS in active record migrations:
+  > create_table
+  > change_table
+  > drop_table
+  > add_column
+  > change_column
+  > rename_column
+  > remove_column
+  > add_index
+  > remove_index
+
+HOWTO TEST RAILS with rake
+  $ rake test_units
+  $ rake test_functional
+  $ rake  # all tests...
+
+============
+
+   Now we have a many to many relationship with Resident and Session models. 
+   It was created this way... 
+   (from developer.apple.com/tools/developrailsleopard.html):
+
+After creating models for resident and session: 
+   $ ruby script/generate model [resident/session] [attributes...]
+   $ rake db:migrate
+
+Create resource resident_session as a joining table
+
+   $ ruby script/generate resource resident_session session_id:integer resident_id:integer
+  
+   - careful of the naming for session_id and resident_id to corresponding
+     tables(resident and session) to be joined as many-to-many   
+
+   $ rake db:migrate
+
+Then add the has_many and belongs to stuff in the models
+
+class Resident < ActiveRecord::Base
+  has_many :resident_sessions
+  has_many :sessions, :through => :resident_sessions
+end
+
+class ResidentSession < ActiveRecord::Base
+  belongs_to :resident
+  belongs_to :session
+end
+
+class Session < ActiveRecord::Base
+  has_many :resident_sessions
+  has_many :residents, :through => :resident_sessions
+end
+============
+ruby script/console:
+>> r1 = Resident.create(:name => "dado")
+>> s1 = Session.create(:description => "first session")
+>> r1.resident_sessions.create(:session => s1)
+
+This all means that:
+> We use this to create to create a "join" table for a many to many relationship
+  between two models (first_model and other_model).
+  $ script/generate resource join_table_name first_model_name_id:integer other_model_name_id:integer
+  $ rake db:migrate
+> We edit the models join_table, first_model & other_model and adding
+  1. belongs_to (on join_model) 
+  2. has_many :join_model(s) + has_many :other_model, :through => join_model(s)
+
+============
+HOWTO create select for a one-to-many like "group has one therapist, therapist
+  has many groups"
+
+<p><label for="group_therapist_id">Therapist</label><br/>
+<%= select 'group', 'therapist_id', @therapists %></p>
+
+  - Note: foreign key should have '_id' suffix
+
+============
+
+HOWTO "fuzzy search" active record models
+  class Session < ActiveRecord::Base
+    def self.find_all_groups   
+      find(:all, :conditions => ["type LIKE ? ", "%Group%"])
+    end
+  end
+  class Group < Session;
+
+============
+
+RUN A single test from commandline
+> ruby test/unit/product_test.rb --name test_calculate_tax
+ 
+============
+
+Hidden fields:
+hidden_field(:variable, :attribute, :options)
+
+============
+
+selection lists:
+
+> prep list
+
+  @residents = Resident.find(:all).map {|t| [t.name, t.id] }
+
+> in the view
+
+  <%= select 'resident', 'id', @residents  %></p>
+
+============
+
+link_to alternative if you have to set additional post params
+  > in this example :resident_id is the other param I want to add to post..
+        <%= button_to "Remove", { :action => 'remove_resident',
+                :id => @session.id, :resident_id => resident.id },
+                :confirm => "Are you sure?", :method => :post %>
+
+
+============
+
+ActiveSupport::JSON
+
+  require 'gems'
+  require 'active_support'
+
+  j = ActiveSupport::JSON
+  j.encode('test')
+  
+  j.decode()
+
+=============
+
+Restclient
+ require 'rubygems'
+ require 'restclient'
+
+ RestClient.get 'http://localhost:3000/customers.xml'
+ RestClient.delete 'http://localhost:3000/customers/1.xml'
+
+=============
+
+HOWTO make netzke (rails with extjs) work in rails:
+
+> download Ext 3.3.0 and contents in public/javascripts/extjs
+
+> Add netzke to gemfile
+
+  gem 'netzke-core', :git => "git://github.com/skozlov/netzke-core.git"
+  gem 'netzke-basepack', :git => "git://github.com/skozlov/netzke-basepack.git"
+
+> update bundle
+ 
+  $ bundle install
+
+> install will_paginate to prevent errors in netzke:
+
+  $ script/plugin install git://github.com/mislav/will_paginate.git
+
+> in config/routes.rb
+  [MyApp]TaskManager::Application.routes.draw do
+    netzke
+    root :to => "welcome#index"
+    # ...
+  end
+
+> generate controller
+
+  rails g controller welcome index
+
+> replace default javascript and stylesheet inclusions with netzke_init helper
+
+  <html>
+  <head>
+    <title>Netzke Task Manager</title>
+
+    # baloi start
+    <%= netzke_init %>
+    <%= csrf_meta_tag %>
+    # baloi end
+
+  </head>
+  <body>
+  <%= yield %>
+  </body>
+  </html>
+
+> create the model
+
+  $ rails g model Task done:boolean name:string notes:text priority:integer due:date
+
+> Now comes the cool part: embed the netzke grid panel:
+  In app/views/welcome/index.html.erb
+
+  <%= netzke :tasks, :class_name => "Basepack::GridPanel", :model => "Task" %>
+
+!!WHOAAA!
+
+=============
+POSTGRES:
+
+###########################################################
+# A startup item has been generated that will aid in
+# starting postgresql90-server with launchd. It is disabled
+# by default. Execute the following command to start it,
+# and to cause it to launch at startup:
+#
+# sudo port load postgresql90-server
+###########################################################
+
+To create a database instance, after install do
+ sudo mkdir -p /opt/local/var/db/postgresql90/defaultdb
+ sudo chown postgres:postgres /opt/local/var/db/postgresql90/defaultdb
+ sudo su postgres -c '/opt/local/lib/postgresql90/bin/initdb -D /opt/local/var/db/postgresql90/defaultdb'
+
+
+=============
+
+POSTGRES via Brew
+
+If builds of PostgreSQL 9 are failing and you have version 8.x installed,
+you may need to remove the previous version first. See:
+  https://github.com/mxcl/homebrew/issues/issue/2510
+
+To build plpython against a specific Python, set PYTHON prior to brewing:
+  PYTHON=/usr/local/bin/python  brew install postgresql
+See:
+  http://www.postgresql.org/docs/9.0/static/install-procedure.html
+
+
+If this is your first install, create a database with:
+    initdb /usr/local/var/postgres
+
+If this is your first install, automatically load on login with:
+    mkdir -p ~/Library/LaunchAgents
+    cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents/
+    launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+
+If this is an upgrade and you already have the org.postgresql.postgres.plist loaded:
+    launchctl unload -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+    cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents/
+    launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+
+Or start manually with:
+    pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+
+And stop with:
+    pg_ctl -D /usr/local/var/postgres stop -s -m fast

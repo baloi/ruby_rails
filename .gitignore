@@ -1,0 +1,5 @@
+*.swp
+.DS_Store
+.svn/
+code_read/
+todo.txt

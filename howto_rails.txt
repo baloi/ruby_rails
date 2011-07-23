@@ -195,6 +195,50 @@ Restclient
 
 =============
 
+AJAX
+> include prototype in file or globally in application html
+  <%= javascript_include_tag "prototype" %>
+
+> in main html file put a div:
+  <div id="my_div">
+    My Contents to be updated
+  </div>
+
+> example (using a form to update div)
+  <%= form_remote_tag( :update => "my_div",
+                      :url => {:action => :my_action} ) %>
+      <%= text_field_tag :param_name %> 
+      <%= submit_tag "text for submit button" %>
+  <%= end_form_tag %>
+
+> in controller:
+  # if you want to change the div only
+  def my_action
+    # means you only display what is in 'my_action.rhtml' with no
+    # other added html content from other files
+    render(:layout => false)
+  end 
+  # then you should have to check my_action.rhtml in 'views' folder 
+
+  # ---- OR if you want change the whole page totally ----
+  def my_action
+    p = params[:param_name]
+    
+    # what will be rendered will be the contents of my_div element( or check
+      form_remote_tag( :update..... )
+    if condition_to_match( p )
+      render(:text => "Got it"
+    else 
+      # should have _form.rhtml
+      render(:partial => 'form')
+  end
+
+> in the rhtml that updates the div... (my_action.rhtml) 
+
+  You updated the text on <%= Time.now %> 
+
+=============
+
 HOWTO make netzke (rails with extjs) work in rails:
 
 > download Ext 3.3.0 and contents in public/javascripts/extjs

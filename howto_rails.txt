@@ -237,6 +237,10 @@ AJAX
 
   You updated the text on <%= Time.now %> 
 
+OTHER AJAX rails tags:
+  link_to_remote('href_name', :update => 'my_div', 
+                 :url => {:action => :delete_product, :id => product.id}
+
 =============
 
 HOWTO make netzke (rails with extjs) work in rails:

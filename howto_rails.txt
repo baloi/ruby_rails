@@ -1,3 +1,54 @@
+======== TDD Rails 3 style ===========
+> rails new devbarn
+> in Gemfile:
+  # baloi start
+  #gem 'rake', '~> 0.8.7'
+  gem 'sqlite3-ruby', :require => 'sqlite3'
+  gem 'rspec-rails', :group => [:test, :development]
+  gem 'sample_models', :group => [:test, :development]
+  
+  group :test do
+    gem "factory_girl_rails"
+    gem "capybara"
+    gem "guard-rspec"
+  end
+  # baloi end
+
+> Run rspec install generator:
+  $ rails g rspec:install
+
+> add dirs for spec
+  $ mkdir spec/support spec/models spec/routing 
+
+> Initialize guard in rspec to generate guard files:
+  $ guard init rspec  # adds Guardfile to project
+
+> Install rb-fsevent to monitor changes
+  $ gem install rb-fsevent 
+
+> Run guard and keep it running
+  $ guard
+
+> Enable capybara in spec/spec_helper.rb, on 'requires' area:
+
+  require 'capybara/rspec'
+
+> Remove fixtures path line in spec/spec_helper.rb
+ 
+> Create a model
+  $ rails g model Resident name:string    
+  $ rake db:migrate
+
+  # notice now that ./spec/models/resident_spec.rb has been created and currently
+  # monitored by guard
+
+> prepare test db:
+  rake db:test:prepare
+
+> create a controller without tests:
+  $ rails g controller users new --no-test-framework 
+======== TDD =========================
+
 > selecting from array through condition
  
   selected_items = all_items.select{|item| item.is_ok?}

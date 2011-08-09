@@ -1,11 +1,42 @@
+======== RESTFUL RAILS ===========
+> map. resources :pages
+
+  pages_url() 
+  . http://mysite.com/pages
+
+  page_path('FAQ')
+  . /pages/FAQ
+
+  formatted_page_path('FAQ', :xml)
+  . /pages/FAQ.xml
+
+  hash_for_page_path(:id => 'FAQ')
+  . /pages/FAQ
+
+  {
+    :only_path => true,
+    :user_route => :page,
+    :action => "show",
+    :controller => "pages",
+    :id => "FAQ"
+  } 
+
+  new_page_path()
+  . /pages/new
+
+  edit_page_path('FAQ')
+  . /pages/FAQ/edit
+
+======== RESTFUL RAILS end ======= 
+
 ======== TDD Rails 3 style ===========
 > rails new devbarn
 > in Gemfile:
   # baloi start
-  #gem 'rake', '~> 0.8.7'
   gem 'sqlite3-ruby', :require => 'sqlite3'
   gem 'rspec-rails', :group => [:test, :development]
   gem 'sample_models', :group => [:test, :development]
+  gem 'bcrypt-ruby', :require => 'bcrypt'
   
   group :test do
     gem "factory_girl_rails"
@@ -13,6 +44,9 @@
     gem "guard-rspec"
   end
   # baloi end
+
+> run bundler:
+  $ bundle
 
 > Run rspec install generator:
   $ rails g rspec:install
@@ -47,7 +81,69 @@
 
 > create a controller without tests:
   $ rails g controller users new --no-test-framework 
+
+> testing users:
+  num_users = User.count
+  post :create, :user => {:name => 'Janjan', :type => "PhysicalTherapist"}
+
+  response.should be_success
+  #assert_response :redirect
+  #assert_redirected_to :action => 'list'
+  #assert_equal num_users + 1, User.count
+
+> create integration test
+  $ rails g integration_test signup
+> in config/routes.rb
+  #get "users/new"
+  get "sign_up" => "users#new", :as => "sign_up"
+  root :to => "users#new"
+  resources :users
+> rails generate integration_test sign_up. sign_up(s)_spec.rb:
+  
+ 
+
 ======== TDD =========================
+
+======== AUTHENTICATION start ========
+> create users controller with 'new' action
+  rails g controller users new 
+> create user model
+  rails g model user email:string password_hash:string password_salt:string 
+
+  class User < ActiveRecord::Base
+    attr_accessor :password
+    before_save :encrypt_password
+  
+    validates_confirmation_of :password
+    validates_presence_of :password, :on => :create
+    validates_presence_of :email
+    validates_uniqueness_of :email
+  
+    def encrypt_password
+      if password.present?
+        self.password_salt = BCrypt::Engine.generate_salt
+        self.password_hash = BCrypt::Engine.hash_secret(password, password_salt)
+      end
+    end
+
+    def self.authenticate(email, password)
+      user = find_by_email(email)
+
+      if user && user.password_hash == 
+          BCrypt::Engine.hash_secret(password, user.password_salt)
+        user
+      else
+        nil
+      end
+    end
+  end
+
+> migrate database
+  rake db:migrate
+> prepare test database 
+  rake db:test:prepare
+> 
+======== AUTHENTICATION end   ========
 
 > selecting from array through condition
  

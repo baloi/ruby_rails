@@ -142,7 +142,25 @@
   rake db:migrate
 > prepare test database 
   rake db:test:prepare
-> 
+Now you have a user maybe add user from console, let's make the login page:
+> generate controller
+  $ rails g controller sessions new
+> in routes.rb
+  get "log_in" => "sessions#new", :as => "log_in"
+  resources :sessions
+> Then add the 'create' method in SessionsController to put in authentication code:
+  class SessionsController < ApplicationController
+    def create
+      user = User.authenticate(params[:email], params[:password]) 
+      if user
+        session[:user_id] = user.id
+        redirect_to root_url, :notice => "Logged in"
+      else
+        flash.now.alert = "Invalid email or password"
+        render "new"
+      end
+    end
+  end
 ======== AUTHENTICATION end   ========
 
 > selecting from array through condition

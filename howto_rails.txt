@@ -1,3 +1,63 @@
+======== CONTROLLERS & VIEWS ===========
+> model with one-to-many
+  ex. Each Category has one-to-many Transactions 
+
+class Category < ActiveRecord::Base
+  belongs_to :parent, :class_name => "Category"
+  has_many :children, :class_name => "Category", :foreign_key => "parent_id"
+  has_many :transactions
+end
+
+create_table "transactions", :force => true do |t|
+  t.string   "description"
+  t.integer  "account_id"
+  t.decimal  "amount"
+  t.integer  "category_id" # each transaction should have a category
+end
+
+> create Categories controller
+  
+  $ rail g scaffold_controller categories --no-test-framework
+
+> in config/routes.rb add (could be on top):
+  
+  resources :categories 
+ 
+> tweak app/views/categories/_form.html.erb (will be used by 'new' and 'edit' actions)
+  - Category has name & parent_id (or parent)
+
+  <p>
+    <%= f.label :name %> <br />
+    <%= f.text_field :name %>
+  </p>
+
+  <p><label for="category_parent_id">Parent</label><br/>
+  <%= select 'category', 'parent_id', @categories  %></p>
+
+
+> @categories should be in CategoryController.new
+
+  @categories = Category.find(:all).map {|t| [t.name, t.id]}
+
+> edit show.html.erb
+
+  category: <%= @category.name %>
+  parent:   <%= @category.parent.name %>  
+
+> categories list (index.html.erb)
+
+  <% @categories.each do |category| %>
+    <td><%= category.name %></td>
+    <td><%= category.parent.name %></td>
+ 
+> add in CategoryController.edit:
+
+  @categories = Category.find(:all).map {|t| [t.name, t.id]}
+   
+  
+====== CONTROLLERS & VIEWS END =========
+
+
 ======== RESTFUL RAILS ===========
 > map. resources :pages
 
@@ -232,10 +292,14 @@ METHODS in active record migrations:
   > add_index
   > remove_index
 
+HOWTO add a "currency column"
+  > add_column :table_name, :column_name, :decimal, :precision => 8, :scale => 2 
+
 HOWTO TEST RAILS with rake
   $ rake test_units
   $ rake test_functional
   $ rake  # all tests...
+
 
 ============
 

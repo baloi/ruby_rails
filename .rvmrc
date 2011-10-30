@@ -1,1 +1,1 @@
-rvm use --create ruby-1.9.2-p180@ruby_rails
+rvm use --create ruby-1.9.2-head@ruby_rails

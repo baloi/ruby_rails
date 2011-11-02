@@ -1,3 +1,16 @@
+======== USING PRY for DEBUG ==========
+> install pry 
+  $ gem install pry pry-doc
+      if rvm then
+  $ rvm gemset use global
+  $ gem install pry pry-doc
+> pry -r ./config/environment
+
+> commands:
+  cd, self, nesting, ls, exit, show-doc Object#method, show-method, (methods
+  of the class you cd'd into) ....
+====== USING PRY for DEBUG END ========
+
 ======== CONTROLLERS & VIEWS ===========
 > model with one-to-many
   ex. Each Category has one-to-many Transactions 
